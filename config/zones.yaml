@@ -1,0 +1,118 @@
+# Zone Configuration
+# Defines camera zones, boundaries, and risk assessment parameters
+
+zones:
+  # Campus zones
+  campus_parking_a:
+    id: "campus_parking_a"
+    name: "Campus Parking Lot A"
+    type: "parking"
+    risk_level: "high"
+    boundaries:
+      - [100, 200]
+      - [300, 200] 
+      - [300, 400]
+      - [100, 400]
+    cameras: ["cam_01", "cam_02"]
+    quiet_hours:
+      start: "22:00"
+      end: "06:00"
+    thresholds:
+      lone_woman_night:
+        min_confidence: 0.7
+        max_people: 3
+        duration_seconds: 10
+      surrounded:
+        min_female_confidence: 0.6
+        min_male_confidence: 0.6
+        min_males: 3
+        max_distance_meters: 2.0
+        duration_seconds: 15
+      sos_gesture:
+        min_confidence: 0.8
+        duration_seconds: 5
+
+  campus_quad:
+    id: "campus_quad"
+    name: "Main Campus Quad"
+    type: "open_space"
+    risk_level: "medium"
+    boundaries:
+      - [50, 50]
+      - [450, 50]
+      - [450, 350]
+      - [50, 350]
+    cameras: ["cam_03", "cam_04"]
+    quiet_hours:
+      start: "23:00"
+      end: "05:00"
+    thresholds:
+      lone_woman_night:
+        min_confidence: 0.7
+        max_people: 2
+        duration_seconds: 8
+      surrounded:
+        min_female_confidence: 0.6
+        min_male_confidence: 0.6
+        min_males: 4
+        max_distance_meters: 1.5
+        duration_seconds: 12
+      sos_gesture:
+        min_confidence: 0.8
+        duration_seconds: 5
+
+  # City zones
+  downtown_park:
+    id: "downtown_park"
+    name: "Downtown Central Park"
+    type: "park"
+    risk_level: "high"
+    boundaries:
+      - [0, 0]
+      - [500, 0]
+      - [500, 300]
+      - [0, 300]
+    cameras: ["cam_05", "cam_06", "cam_07"]
+    quiet_hours:
+      start: "21:00"
+      end: "07:00"
+    thresholds:
+      lone_woman_night:
+        min_confidence: 0.7
+        max_people: 2
+        duration_seconds: 10
+      surrounded:
+        min_female_confidence: 0.6
+        min_male_confidence: 0.6
+        min_males: 3
+        max_distance_meters: 2.0
+        duration_seconds: 15
+      sos_gesture:
+        min_confidence: 0.8
+        duration_seconds: 5
+
+# Global system settings
+system:
+  # Video processing
+  fps: 5
+  clip_duration_seconds: 8
+  face_blur_radius: 15
+  
+  # Alert settings
+  alert_cooldown_seconds: 300  # 5 minutes between same-type alerts
+  max_alerts_per_hour: 10
+  
+  # Storage settings
+  retention_days: 30
+  max_storage_gb: 100
+  
+  # Performance settings
+  detection_confidence_threshold: 0.5
+  tracking_max_age: 30
+  tracking_min_hits: 3
+
+# Time-based risk multipliers
+time_risk_multipliers:
+  night_hours: 1.5
+  weekend_nights: 2.0
+  holiday_nights: 2.5

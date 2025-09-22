@@ -1,0 +1,136 @@
+# Camera Configuration
+# Defines camera sources, locations, and technical parameters
+
+cameras:
+  cam_01:
+    id: "cam_01"
+    name: "Parking Lot A - North"
+    zone_id: "campus_parking_a"
+    source: "rtsp://192.168.1.101:554/stream1"
+    position: [200, 200]
+    resolution: [1920, 1080]
+    fps: 30
+    enabled: true
+    calibration:
+      focal_length: [1000, 1000]
+      principal_point: [960, 540]
+      distortion_coeffs: [0.1, -0.2, 0, 0, 0]
+    roi:  # Region of interest (optional)
+      enabled: false
+      polygon: []
+
+  cam_02:
+    id: "cam_02"
+    name: "Parking Lot A - South"
+    zone_id: "campus_parking_a"
+    source: "rtsp://192.168.1.102:554/stream1"
+    position: [200, 350]
+    resolution: [1920, 1080]
+    fps: 30
+    enabled: true
+    calibration:
+      focal_length: [1000, 1000]
+      principal_point: [960, 540]
+      distortion_coeffs: [0.1, -0.2, 0, 0, 0]
+
+  cam_03:
+    id: "cam_03"
+    name: "Quad - East"
+    zone_id: "campus_quad"
+    source: "rtsp://192.168.1.103:554/stream1"
+    position: [250, 200]
+    resolution: [1920, 1080]
+    fps: 30
+    enabled: true
+    calibration:
+      focal_length: [1000, 1000]
+      principal_point: [960, 540]
+      distortion_coeffs: [0.1, -0.2, 0, 0, 0]
+
+  cam_04:
+    id: "cam_04"
+    name: "Quad - West"
+    zone_id: "campus_quad"
+    source: "rtsp://192.168.1.104:554/stream1"
+    position: [250, 200]
+    resolution: [1920, 1080]
+    fps: 30
+    enabled: true
+    calibration:
+      focal_length: [1000, 1000]
+      principal_point: [960, 540]
+      distortion_coeffs: [0.1, -0.2, 0, 0, 0]
+
+  cam_05:
+    id: "cam_05"
+    name: "Park - Entrance"
+    zone_id: "downtown_park"
+    source: "rtsp://192.168.1.105:554/stream1"
+    position: [250, 50]
+    resolution: [1920, 1080]
+    fps: 30
+    enabled: true
+    calibration:
+      focal_length: [1000, 1000]
+      principal_point: [960, 540]
+      distortion_coeffs: [0.1, -0.2, 0, 0, 0]
+
+  cam_06:
+    id: "cam_06"
+    name: "Park - Center"
+    zone_id: "downtown_park"
+    source: "rtsp://192.168.1.106:554/stream1"
+    position: [250, 150]
+    resolution: [1920, 1080]
+    fps: 30
+    enabled: true
+    calibration:
+      focal_length: [1000, 1000]
+      principal_point: [960, 540]
+      distortion_coeffs: [0.1, -0.2, 0, 0, 0]
+
+  cam_07:
+    id: "cam_07"
+    name: "Park - Playground"
+    zone_id: "downtown_park"
+    source: "rtsp://192.168.1.107:554/stream1"
+    position: [400, 200]
+    resolution: [1920, 1080]
+    fps: 30
+    enabled: true
+    calibration:
+      focal_length: [1000, 1000]
+      principal_point: [960, 540]
+      distortion_coeffs: [0.1, -0.2, 0, 0, 0]
+
+# Test camera for development
+test_cam:
+  id: "test_cam"
+  name: "Test Camera"
+  zone_id: "campus_parking_a"
+  source: "0"  # Webcam
+  position: [200, 200]
+  resolution: [640, 480]
+  fps: 30
+  enabled: true
+  calibration:
+    focal_length: [500, 500]
+    principal_point: [320, 240]
+    distortion_coeffs: [0, 0, 0, 0, 0]
+
+# Camera groups for multi-camera tracking
+camera_groups:
+  campus_parking_a:
+    cameras: ["cam_01", "cam_02"]
+    overlap_threshold: 0.3
+    tracking_handoff: true
+  
+  campus_quad:
+    cameras: ["cam_03", "cam_04"]
+    overlap_threshold: 0.2
+    tracking_handoff: true
+  
+  downtown_park:
+    cameras: ["cam_05", "cam_06", "cam_07"]
+    overlap_threshold: 0.25
+    tracking_handoff: true

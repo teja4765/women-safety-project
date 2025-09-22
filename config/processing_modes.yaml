@@ -1,0 +1,156 @@
+# Processing Modes Configuration
+# Defines different processing modes for live CCTV vs video file analysis
+
+processing_modes:
+  live_cctv:
+    name: "Live CCTV Processing"
+    description: "Real-time processing of live camera feeds"
+    fps: 5
+    frame_skip: 6  # Process every 6th frame (30fps / 5fps)
+    buffer_size: 30  # Keep 30 frames in buffer (1 second at 30fps)
+    temporal_analysis: true
+    real_time_alerts: true
+    performance_monitoring: true
+    websocket_updates: true
+    
+    # Live-specific settings
+    live_settings:
+      connection_timeout: 30
+      reconnect_attempts: 3
+      heartbeat_interval: 10
+      frame_drop_threshold: 0.1  # Drop frames if processing is too slow
+      
+    # Risk detection settings for live processing
+    risk_detection:
+      lone_woman_night:
+        temporal_consistency_frames: 10  # Require 10 consistent frames
+        confidence_threshold: 0.7
+        duration_seconds: 8
+      surrounded:
+        proximity_check_frames: 5  # Check proximity over 5 frames
+        cluster_persistence_frames: 15
+        confidence_threshold: 0.6
+      sos_gesture:
+        gesture_sequence_frames: 8  # Require 8 frames of gesture
+        temporal_smoothing: true
+        confidence_threshold: 0.8
+
+  video_file_batch:
+    name: "Video File Batch Processing"
+    description: "Batch processing of uploaded video files"
+    fps: 10  # Higher FPS for thorough analysis
+    frame_skip: 3  # Process every 3rd frame (30fps / 10fps)
+    buffer_size: 100  # Larger buffer for batch processing
+    temporal_analysis: true
+    real_time_alerts: false
+    performance_monitoring: true
+    websocket_updates: false
+    
+    # Batch-specific settings
+    batch_settings:
+      max_file_size_mb: 500
+      supported_formats: ["mp4", "avi", "mov", "mkv", "flv"]
+      output_quality: "high"
+      save_annotated_frames: true
+      generate_summary_report: true
+      
+    # Risk detection settings for batch processing
+    risk_detection:
+      lone_woman_night:
+        temporal_consistency_frames: 20  # More frames for accuracy
+        confidence_threshold: 0.6  # Lower threshold for thoroughness
+        duration_seconds: 10
+      surrounded:
+        proximity_check_frames: 10
+        cluster_persistence_frames: 20
+        confidence_threshold: 0.5
+      sos_gesture:
+        gesture_sequence_frames: 15
+        temporal_smoothing: true
+        confidence_threshold: 0.7
+
+  video_file_realtime:
+    name: "Video File Real-time Processing"
+    description: "Real-time processing of video files (simulated live)"
+    fps: 5
+    frame_skip: 6
+    buffer_size: 30
+    temporal_analysis: true
+    real_time_alerts: true
+    performance_monitoring: true
+    websocket_updates: true
+    
+    # Real-time video file settings
+    realtime_settings:
+      playback_speed: 1.0  # Real-time playback
+      frame_delay_ms: 200  # 200ms delay between frames
+      pause_on_alert: false
+      skip_silent_periods: false
+      
+    # Risk detection settings (same as live CCTV)
+    risk_detection:
+      lone_woman_night:
+        temporal_consistency_frames: 10
+        confidence_threshold: 0.7
+        duration_seconds: 8
+      surrounded:
+        proximity_check_frames: 5
+        cluster_persistence_frames: 15
+        confidence_threshold: 0.6
+      sos_gesture:
+        gesture_sequence_frames: 8
+        temporal_smoothing: true
+        confidence_threshold: 0.8
+
+# Global processing settings
+global_settings:
+  # Model settings
+  models:
+    yolo_confidence_threshold: 0.5
+    gender_confidence_threshold: 0.6
+    pose_confidence_threshold: 0.5
+    
+  # Performance settings
+  performance:
+    max_concurrent_cameras: 8
+    max_concurrent_video_jobs: 3
+    gpu_memory_limit_mb: 2048
+    cpu_usage_limit: 0.8
+    
+  # Storage settings
+  storage:
+    temp_file_retention_hours: 24
+    processed_file_retention_days: 7
+    max_storage_usage_gb: 100
+    
+  # Alert settings
+  alerts:
+    cooldown_period_seconds: 300
+    max_alerts_per_hour: 20
+    alert_retention_days: 30
+    
+  # Privacy settings
+  privacy:
+    face_blur_radius: 15
+    auto_delete_clips_days: 30
+    anonymize_metadata: true
+    encrypt_stored_data: true
+
+# Processing mode selection rules
+mode_selection:
+  # Automatic mode selection based on input
+  auto_select:
+    rtsp_url: "live_cctv"
+    file_upload: "video_file_batch"
+    file_path: "video_file_batch"
+    
+  # Manual mode override
+  manual_override:
+    enabled: true
+    allowed_modes: ["live_cctv", "video_file_batch", "video_file_realtime"]
+    
+  # Mode switching
+  mode_switching:
+    allow_runtime_switch: true
+    switch_cooldown_seconds: 60
+    preserve_state: true

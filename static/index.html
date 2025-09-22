@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Safety Detection System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+        
+        .header {
+            background: #2c3e50;
+            color: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .card h3 {
+            margin-bottom: 1rem;
+            color: #2c3e50;
+            font-size: 1.1rem;
+        }
+        
+        .stat {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .stat:last-child {
+            border-bottom: none;
+        }
+        
+        .stat-value {
+            font-weight: 600;
+            color: #27ae60;
+        }
+        
+        .alert {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 4px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .alert.high {
+            background: #f8d7da;
+            border-color: #f5c6cb;
+        }
+        
+        .alert.medium {
+            background: #fff3cd;
+            border-color: #ffeaa7;
+        }
+        
+        .alert.low {
+            background: #d1ecf1;
+            border-color: #bee5eb;
+        }
+        
+        .alert-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        
+        .alert-type {
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+        }
+        
+        .alert-time {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .alert-details {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+        }
+        
+        .status-online {
+            background: #27ae60;
+        }
+        
+        .status-offline {
+            background: #e74c3c;
+        }
+        
+        .status-warning {
+            background: #f39c12;
+        }
+        
+        .camera-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        
+        .camera-item {
+            background: #f8f9fa;
+            border-radius: 4px;
+            padding: 1rem;
+            text-align: center;
+        }
+        
+        .camera-name {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .camera-status {
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        .loading {
+            text-align: center;
+            color: #666;
+            padding: 2rem;
+        }
+        
+        .error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            border-radius: 4px;
+            padding: 1rem;
+            color: #721c24;
+            margin-bottom: 1rem;
+        }
+        
+        .refresh-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        
+        .refresh-btn:hover {
+            background: #2980b9;
+        }
+        
+        .refresh-btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🛡️ Safety Detection System</h1>
+    </div>
+    
+    <div class="container">
+        <div class="dashboard">
+            <!-- System Status -->
+            <div class="card">
+                <h3>System Status</h3>
+                <div id="system-status">
+                    <div class="loading">Loading...</div>
+                </div>
+            </div>
+            
+            <!-- Camera Status -->
+            <div class="card">
+                <h3>Camera Status</h3>
+                <div id="camera-status">
+                    <div class="loading">Loading...</div>
+                </div>
+            </div>
+            
+            <!-- Alert Summary -->
+            <div class="card">
+                <h3>Alert Summary (24h)</h3>
+                <div id="alert-summary">
+                    <div class="loading">Loading...</div>
+                </div>
+            </div>
+            
+            <!-- Analytics -->
+            <div class="card">
+                <h3>Analytics Summary</h3>
+                <div id="analytics-summary">
+                    <div class="loading">Loading...</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Video Analysis Demo -->
+        <div class="card">
+            <h3>Video Analysis (Upload a clip)</h3>
+            <form id="upload-form">
+                <input id="file-input" type="file" accept="video/*" required />
+                <input id="zone-input" type="text" placeholder="zone_id (e.g., campus_parking_a)" value="campus_parking_a" />
+                <button class="refresh-btn" type="submit">Analyze</button>
+            </form>
+            <div id="upload-status" class="loading"></div>
+            <div style="display:flex; gap:16px; margin-top:16px; align-items:flex-start;">
+                <div>
+                    <video id="preview-video" controls style="max-width:480px; display:none; border-radius:8px; border:1px solid #eee;"></video>
+                    <div id="frame-view" style="margin-top:8px;"></div>
+                </div>
+                <div style="flex:1;">
+                    <h4>Detections</h4>
+                    <div id="alert-list"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Image Analysis Demo -->
+        <div class="card">
+            <h3>Image Analysis (Upload a photo)</h3>
+            <form id="image-form">
+                <input id="image-input" type="file" accept="image/*" required />
+                <button class="refresh-btn" type="submit">Analyze Image</button>
+            </form>
+            <div id="image-status" class="loading"></div>
+            <div id="image-result" style="margin-top:12px;"></div>
+        </div>
+    </div>
+    
+    <script>
+        const API_BASE = '/api/v1';
+        
+        // Load dashboard data
+        async function loadDashboard() {
+            try {
+                await Promise.all([
+                    loadSystemStatus(),
+                    loadCameraStatus(),
+                    loadAlertSummary(),
+                    loadAnalyticsSummary(),
+                    loadRecentAlerts()
+                ]);
+            } catch (error) {
+                console.error('Error loading dashboard:', error);
+            }
+        }
+        
+        // Load system status
+        async function loadSystemStatus() {
+            try {
+                const response = await fetch(`${API_BASE}/health/detailed`);
+                const data = await response.json();
+                
+                const statusDiv = document.getElementById('system-status');
+                statusDiv.innerHTML = `
+                    <div class="stat">
+                        <span>Overall Status</span>
+                        <span class="stat-value ${data.status === 'healthy' ? 'status-online' : 'status-offline'}">${data.status}</span>
+                    </div>
+                    <div class="stat">
+                        <span>API Status</span>
+                        <span class="stat-value status-online">${data.components?.api || 'unknown'}</span>
+                    </div>
+                    <div class="stat">
+                        <span>Database</span>
+                        <span class="stat-value status-online">${data.components?.database || 'unknown'}</span>
+                    </div>
+                    <div class="stat">
+                        <span>Storage</span>
+                        <span class="stat-value status-online">${data.components?.storage || 'unknown'}</span>
+                    </div>
+                `;
+            } catch (error) {
+                document.getElementById('system-status').innerHTML = '<div class="error">Failed to load system status</div>';
+            }
+        }
+        
+        // Load camera status
+        async function loadCameraStatus() {
+            try {
+                const response = await fetch(`${API_BASE}/cameras/stats/summary`);
+                const data = await response.json();
+                
+                const statusDiv = document.getElementById('camera-status');
+                statusDiv.innerHTML = `
+                    <div class="stat">
+                        <span>Total Cameras</span>
+                        <span class="stat-value">${data.total_cameras}</span>
+                    </div>
+                    <div class="stat">
+                        <span>Online</span>
+                        <span class="stat-value">${data.online_cameras}</span>
+                    </div>
+                    <div class="stat">
+                        <span>Offline</span>
+                        <span class="stat-value">${data.offline_cameras}</span>
+                    </div>
+                    <div class="stat">
+                        <span>Enabled</span>
+                        <span class="stat-value">${data.enabled_cameras}</span>
+                    </div>
+                `;
+            } catch (error) {
+                document.getElementById('camera-status').innerHTML = '<div class="error">Failed to load camera status</div>';
+            }
+        }
+        
+        // Load alert summary
+        async function loadAlertSummary() {
+            try {
+                const response = await fetch(`${API_BASE}/alerts/stats/summary`);
+                const data = await response.json();
+                
+                const summaryDiv = document.getElementById('alert-summary');
+                summaryDiv.innerHTML = `
+                    <div class="stat">
+                        <span>Total Alerts</span>
+                        <span class="stat-value">${data.total_alerts}</span>
+                    </div>
+                    <div class="stat">
+                        <span>Pending</span>
+                        <span class="stat-value">${data.status_breakdown?.pending || 0}</span>
+                    </div>
+                    <div class="stat">
+                        <span>Acknowledged</span>
+                        <span class="stat-value">${data.status_breakdown?.acknowledged || 0}</span>
+                    </div>
+                    <div class="stat">
+                        <span>False Positive Rate</span>
+                        <span class="stat-value">${(data.false_positive_rate * 100).toFixed(1)}%</span>
+                    </div>
+                `;
+            } catch (error) {
+                document.getElementById('alert-summary').innerHTML = '<div class="error">Failed to load alert summary</div>';
+            }
+        }
+        
+        // Load analytics summary
+        async function loadAnalyticsSummary() {
+            try {
+                const response = await fetch(`${API_BASE}/analytics/summary`);
+                const data = await response.json();
+                
+                const summaryDiv = document.getElementById('analytics-summary');
+                summaryDiv.innerHTML = `
+                    <div class="stat">
+                        <span>Hotspots</span>
+                        <span class="stat-value">${data.hotspots?.total || 0}</span>
+                    </div>
+                    <div class="stat">
+                        <span>High Risk</span>
+                        <span class="stat-value">${data.hotspots?.high_risk || 0}</span>
+                    </div>
+                    <div class="stat">
+                        <span>Avg Females</span>
+                        <span class="stat-value">${data.gender_distribution?.avg_females || 0}</span>
+                    </div>
+                    <div class="stat">
+                        <span>Processing FPS</span>
+                        <span class="stat-value">${data.system_performance?.processing_fps || 0}</span>
+                    </div>
+                `;
+            } catch (error) {
+                document.getElementById('analytics-summary').innerHTML = '<div class="error">Failed to load analytics summary</div>';
+            }
+        }
+        
+        // Load recent alerts
+        async function loadRecentAlerts() {
+            try {
+                const response = await fetch(`${API_BASE}/alerts?limit=10`);
+                const alerts = await response.json();
+                
+                const alertsDiv = document.getElementById('recent-alerts');
+                if (alerts.length === 0) {
+                    alertsDiv.innerHTML = '<div class="loading">No recent alerts</div>';
+                    return;
+                }
+                
+                alertsDiv.innerHTML = alerts.map(alert => `
+                    <div class="alert ${getAlertSeverity(alert.severity)}">
+                        <div class="alert-header">
+                            <span class="alert-type">${alert.type.replace('_', ' ')}</span>
+                            <span class="alert-time">${new Date(alert.created_at).toLocaleString()}</span>
+                        </div>
+                        <div class="alert-details">
+                            <strong>${alert.camera_id}</strong> - ${alert.description}<br>
+                            Confidence: ${(alert.confidence * 100).toFixed(1)}% | 
+                            Severity: ${(alert.severity * 100).toFixed(1)}%
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                document.getElementById('recent-alerts').innerHTML = '<div class="error">Failed to load recent alerts</div>';
+            }
+        }
+        
+        // Get alert severity class
+        function getAlertSeverity(severity) {
+            if (severity >= 0.7) return 'high';
+            if (severity >= 0.4) return 'medium';
+            return 'low';
+        }
+        
+        // Refresh alerts
+        function refreshAlerts() {
+            const btn = document.querySelector('.refresh-btn');
+            btn.disabled = true;
+            btn.textContent = 'Refreshing...';
+            
+            loadRecentAlerts().finally(() => {
+                btn.disabled = false;
+                btn.textContent = 'Refresh';
+            });
+        }
+        
+        // Simple upload + polling flow for video analysis
+        const uploadForm = document.getElementById('upload-form');
+        const fileInput = document.getElementById('file-input');
+        const zoneInput = document.getElementById('zone-input');
+        const uploadStatus = document.getElementById('upload-status');
+        const previewVideo = document.getElementById('preview-video');
+        const frameView = document.getElementById('frame-view');
+        const alertList = document.getElementById('alert-list');
+
+        uploadForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            alertList.innerHTML = '';
+            frameView.innerHTML = '';
+
+            const file = fileInput.files[0];
+            if (!file) return;
+            const zoneId = zoneInput.value || 'campus_parking_a';
+
+            // Preview video locally
+            previewVideo.src = URL.createObjectURL(file);
+            previewVideo.style.display = 'block';
+
+            // Upload for analysis
+            uploadStatus.textContent = 'Uploading and starting analysis...';
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('zone_id', zoneId);
+            formData.append('processing_mode', 'batch');
+
+            try {
+                const res = await fetch(`${API_BASE}/video-analysis/upload`, { method: 'POST', body: formData });
+                if (!res.ok) throw new Error('Upload failed');
+                const job = await res.json();
+                uploadStatus.textContent = `Job started: ${job.job_id}. Analyzing...`;
+                pollJob(job.job_id);
+            } catch (err) {
+                uploadStatus.textContent = 'Error starting analysis';
+            }
+        });
+
+        async function pollJob(jobId) {
+            let attempts = 0;
+            const interval = setInterval(async () => {
+                attempts++;
+                const res = await fetch(`${API_BASE}/video-analysis/jobs/${jobId}`);
+                if (!res.ok) return;
+                const job = await res.json();
+                uploadStatus.textContent = `Status: ${job.status} | Progress: ${job.progress?.toFixed?.(1) || 0}%`;
+                if (job.status === 'completed' || job.status === 'failed' || attempts > 120) {
+                    clearInterval(interval);
+                    loadResults(jobId);
+                }
+            }, 2000);
+        }
+
+        async function loadResults(jobId) {
+            const res = await fetch(`${API_BASE}/video-analysis/jobs/${jobId}/results`);
+            if (!res.ok) {
+                uploadStatus.textContent = 'Failed to load results';
+                return;
+            }
+            const data = await res.json();
+            uploadStatus.textContent = `Done. Total alerts: ${data.total_alerts}`;
+
+            // Show detection summary if present
+            frameView.innerHTML = '';
+            if (data.processing_report && data.processing_report.detection_stats) {
+                const s = data.processing_report.detection_stats;
+                const statsDiv = document.createElement('div');
+                statsDiv.style.marginBottom = '8px';
+                // Violence summary if present
+                let violenceLine = '';
+                if (data.processing_report.violence_stats && (data.processing_report.violence_stats.frames_flagged > 0)) {
+                    violenceLine = `<div class="stat"><span>Violence</span><span class="stat-value" style="color:#e74c3c">YES</span></div>`;
+                } else if (data.processing_report.violence_stats) {
+                    violenceLine = `<div class="stat"><span>Violence</span><span class="stat-value">NO</span></div>`;
+                }
+                statsDiv.innerHTML = `
+                    <div class="stat"><span>Females</span><span class="stat-value">${s.last_females ?? '-'}</span></div>
+                    <div class="stat"><span>Males</span><span class="stat-value">${s.last_males ?? '-'}</span></div>
+                    ${violenceLine}
+                `;
+                frameView.appendChild(statsDiv);
+            }
+            // Show first few frames inline
+            (data.sample_frames || []).slice(0, 4).forEach(fname => {
+                const img = document.createElement('img');
+                img.src = `${API_BASE}/video-analysis/jobs/${jobId}/frames/${fname}`;
+                img.style.maxWidth = '220px';
+                img.style.marginRight = '8px';
+                img.style.border = '1px solid #eee';
+                img.style.borderRadius = '6px';
+                frameView.appendChild(img);
+            });
+
+            // Render alert list
+            alertList.innerHTML = '';
+            (data.alerts || []).forEach(alert => {
+                const div = document.createElement('div');
+                div.className = 'alert ' + (alert.severity >= 0.7 ? 'high' : alert.severity >= 0.4 ? 'medium' : 'low');
+                div.innerHTML = `
+                    <div class="alert-header">
+                        <span class="alert-type">${alert.type?.replaceAll('_', ' ') || 'ALERT'}</span>
+                        <span class="alert-time">${alert.created_at || ''}</span>
+                    </div>
+                    <div class="alert-details">
+                        ${alert.description || ''}<br/>
+                        Confidence: ${(alert.confidence * 100).toFixed(1)}% | Severity: ${(alert.severity * 100).toFixed(1)}%
+                    </div>
+                `;
+                alertList.appendChild(div);
+            });
+        }
+
+        // Initial dashboard load
+        loadDashboard();
+
+        // Image analysis handlers
+        const imageForm = document.getElementById('image-form');
+        const imageInput = document.getElementById('image-input');
+        const imageStatus = document.getElementById('image-status');
+        const imageResult = document.getElementById('image-result');
+
+        imageForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const file = imageInput.files[0];
+            if (!file) return;
+            imageStatus.textContent = 'Analyzing image...';
+            imageResult.innerHTML = '';
+
+            const fd = new FormData();
+            fd.append('file', file);
+
+            try {
+                const res = await fetch(`${API_BASE}/image-analysis/upload`, { method: 'POST', body: fd });
+                if (!res.ok) throw new Error('Upload failed');
+                const out = await res.json();
+                imageStatus.textContent = `Threat: ${out.threat ? 'YES' : 'NO'} (${out.reason})`;
+                const img = document.createElement('img');
+                img.src = `${API_BASE}${out.annotated_image_url}`;
+                img.style.maxWidth = '480px';
+                img.style.border = '1px solid #eee';
+                img.style.borderRadius = '6px';
+                imageResult.appendChild(img);
+            } catch (err) {
+                imageStatus.textContent = 'Error analyzing image';
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,130 @@
+version: '3.8'
+
+services:
+  # Main application
+  safety-detection:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./config:/app/config
+      - ./data:/app/data
+      - ./models:/app/models
+    environment:
+      - DATABASE_URL=postgresql://safety_user:safety_pass@postgres:5432/safety_db
+      - REDIS_URL=redis://redis:6379/0
+      - MINIO_ENDPOINT=minio:9000
+      - MINIO_ACCESS_KEY=minioadmin
+      - MINIO_SECRET_KEY=minioadmin
+    depends_on:
+      - postgres
+      - redis
+      - minio
+    restart: unless-stopped
+
+  # Database
+  postgres:
+    image: timescale/timescaledb:latest-pg15
+    environment:
+      - POSTGRES_DB=safety_db
+      - POSTGRES_USER=safety_user
+      - POSTGRES_PASSWORD=safety_pass
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+
+  # Redis for caching and message queue
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
+  # Object storage for video clips
+  minio:
+    image: minio/minio:latest
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      - MINIO_ROOT_USER=minioadmin
+      - MINIO_ROOT_PASSWORD=minioadmin
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+    restart: unless-stopped
+
+  # Celery worker for background tasks
+  celery-worker:
+    build: .
+    command: celery -A app.worker worker --loglevel=info
+    volumes:
+      - ./config:/app/config
+      - ./data:/app/data
+      - ./models:/app/models
+    environment:
+      - DATABASE_URL=postgresql://safety_user:safety_pass@postgres:5432/safety_db
+      - REDIS_URL=redis://redis:6379/0
+      - MINIO_ENDPOINT=minio:9000
+      - MINIO_ACCESS_KEY=minioadmin
+      - MINIO_SECRET_KEY=minioadmin
+    depends_on:
+      - postgres
+      - redis
+      - minio
+    restart: unless-stopped
+
+  # Celery beat for scheduled tasks
+  celery-beat:
+    build: .
+    command: celery -A app.worker beat --loglevel=info
+    volumes:
+      - ./config:/app/config
+    environment:
+      - DATABASE_URL=postgresql://safety_user:safety_pass@postgres:5432/safety_db
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      - postgres
+      - redis
+    restart: unless-stopped
+
+  # Monitoring
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
+  minio_data:
+  prometheus_data:
+  grafana_data:
